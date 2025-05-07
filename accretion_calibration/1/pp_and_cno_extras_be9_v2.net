@@ -1,0 +1,13 @@
+! 2024/4/16 by Kunitomo
+! see pp_extras_plus_be9.net, pp_and_cno_extras.net
+! mesa/data/net_data/nets
+
+
+ include 'basic.net'
+      
+ include 'add_pp_extras'
+
+ include 'add_cno_extras'
+      
+ add_isos(h3, be9, b10, b11, neut, li6)
+         

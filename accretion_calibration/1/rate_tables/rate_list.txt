@@ -1,0 +1,51 @@
+! rates list file for use with mesa/rates
+! pairs of rate name and rate file
+
+
+!NACRE rates below
+
+!r_h1_h1_ag_li6         'r_h1_h1_ag_li6_nacreII.dat'
+r_h1_h2_to_neut_he4       'r_h1_h2_n_to_he4_nacreII.dat'
+
+r_h2_h2_to_he4         'r_h2_h2_to_he4_nacreII.dat'
+r_h2_h2_to_neut_he3       'r_h2_h2_to_n_he3_nacreII.dat'
+r_h2_he3_to_h1_he4     'r_h2_he3_to_h1_he4_nacreII.dat'
+r_h2_pg_he3            'r_h2_pg_he3_nacreII.dat'
+
+r_he3_ag_be7           'r_he3_ag_be7_nacreII.dat'
+r_he3_ag_li7           'r_he3_ag_li7_nacreII.dat'
+r_he3_he3_to_h1_h1_he4 'r_he3_he3_to_h1_h1_he4_nacreII.dat'
+
+!r_li6_pg_be7           'r_li6_pg_be7_nacreII.dat'
+!r_li7_ag_b11           'r_li7_ag_b11_nacreII.dat'
+r_li7_pa_he4           'r_li7_pa_he4_nacreII.dat'
+!r_li7_pg_be8           'r_li7_pg_be8_nacreII.dat'
+
+
+!r_be7_ag_c11           'r_be7_ag_c11_nacreII.dat
+r_be7_pg_b8            'r_be7_pg_b8_nacreII.dat'
+!r_be9_an_c12           'r_be9_an_c12_nacreII.dat'
+!r_be9_h1_to_h2_be8     'r_be9_h1_to_h2_be8_nacreII.dat'
+!r_be9_pa_li6           'r_be9_pa_li6_nacreII.dat'
+!r_be9_pg_b10           'r_be9_pg_b10_nacreII.dat'
+
+!r_b10_pa_be7           'r_b10_pa_be7_nacreII.dat'
+!r_b10_pg_c12           'r_b10_pg_c12_nacreII.dat'
+!r_b11_an_n14           'r_b11_an_n14_nacreII.dat'
+!r_b11_pa_be8           'r_b11_pa_be8_nacreII.dat'
+!r_b11_pg_c12           'r_b11_pg_c12_nacreII.dat'
+
+r_c12_pg_n13           'r_c12_pg_n13_nacreII.dat'
+r_c13_an_o16           'r_c13_an_o16_nacreII.dat'
+r_c13_pg_n14           'r_c13_pg_n14_nacreII.dat'
+
+r_n13_pg_o14           'r_n13_pg_o14_nacreII.dat'
+!r_n14_pg_o15           'r_n14_pg_o15_nacreII.dat' ! this rate is scale using nacre_factor
+r_n15_pa_c12           'r_n15_pa_c12_nacreII.dat'
+r_n15_pg_o16           'r_n15_pg_o16_nacreII.dat'
+
+
+
+! Helium Burning
+r_c12_ag_o16   'c12ag_deboer_sigma_0p0_2000_Tgrid.dat'
+
