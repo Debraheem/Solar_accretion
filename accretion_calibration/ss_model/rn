@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rm -f restart_photo
+
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+#./star inlist_relax   | tee log.relax
+#./star inlist_prezams | tee log.prezams
+./star inlist_calibrate   | tee log.solar
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"

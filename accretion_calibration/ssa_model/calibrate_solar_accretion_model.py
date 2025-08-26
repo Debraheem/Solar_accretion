@@ -33,7 +33,7 @@ save_dir  = "LOGS"
 os.makedirs(save_dir, exist_ok=True)
 
 # Step 4: Parse optional age argument
-age = 4.572
+age = 4.568
 if len(sys.argv) > 1:
     age = float(sys.argv[1])
 

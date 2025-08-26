@@ -1,0 +1,83 @@
+&star_job
+    load_saved_model = .true.
+    load_model_filename = 'relax.mod'
+
+    save_model_when_terminate = .true.
+    save_model_filename = 'prezams.mod'
+      
+    change_initial_net = .true.
+    new_net_name = 'pp_and_cno_extras.net'
+    
+    write_profile_when_terminate = .true.
+    filename_for_profile_when_terminate = 'LOGS/prezams.data'
+    
+    set_initial_age = .true.
+    initial_age = 0
+
+/ ! end of star_job namelist
+
+
+&eos
+    use_FreeEOS = .false.
+    !use_OPAL_SCVH = .false.
+    use_Skye = .false.
+
+/ ! end of eos namelist
+
+
+&kap
+    use_Type2_opacities = .false.
+   ! kap_lowT_prefix = 'lowT_fa05_a09p'
+    cubic_interpolation_in_Z = .true.
+    cubic_interpolation_in_X = .true.
+
+/ ! end of kap namelist
+
+
+&controls
+    initial_mass = 1
+    initial_z = 0.018
+    
+    mesh_delta_coeff = 1
+    
+    MLT_option = 'Cox'
+    mixing_length_alpha = 1.8
+    
+    atm_T_tau_opacity = 'varying'
+    
+    !P_function_weight = 150  ! default is 40
+    !T_function1_weight = 200 ! default is 110
+    !log_tau_function_weight = 100
+    !log_kap_function_weight = 100
+    
+    ! turn off default weights 
+    !P_function_weight = 0
+    !T_function1_weight = 0
+    
+    !! new mesh controls 
+    
+    !E_function_weight = 50 
+    !log_kap_function_weight = 100
+    !gradT_function_weight = 5e2
+    
+    !xa_function_species(1) = 'he4'
+    !xa_function_weight(1) = 5e3
+    !xa_function_param(1) = 1
+    
+    xa_function_species(1) = 'he3'
+    xa_function_weight(1) = 5e6
+    xa_function_param(1) = 1
+    
+    delta_lgE_limit = 1d-2 ! default is 0.1d0
+    !delta_dX_div_X_cntr_min = -8 ! default is -5
+    
+    varcontrol_target = 1d-4
+    
+    use_gold2_tolerances = .true.
+    
+    max_age = 2.5e7 !1d5 !1d6
+    
+    profile_interval = -1
+    photo_interval = -1
+    
+/ ! end of controls namelist

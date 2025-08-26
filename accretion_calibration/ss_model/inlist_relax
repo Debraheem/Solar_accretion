@@ -1,0 +1,60 @@
+&star_job
+    create_pre_main_sequence_model = .true.
+    pre_ms_relax_to_start_radiative_core = .false.!.true.
+    pre_ms_relax_num_steps = 100
+    
+    save_model_when_terminate = .true.
+    save_model_filename = 'relax.mod'
+    
+    change_initial_net = .true.
+    new_net_name = 'pp_and_cno_extras.net'
+    
+    write_profile_when_terminate = .true.
+    filename_for_profile_when_terminate = 'LOGS/relax.data'
+    
+    pre_ms_T_c = 9.9d5 ! start hotter to save time
+    steps_to_take_before_terminate = 1
+
+    initial_zfracs = 3
+/ ! end of star_job namelist
+
+
+&eos
+    use_FreeEOS = .false.
+    !use_OPAL_SCVH = .false.
+    use_Skye = .false.
+
+/ ! end of eos namelist
+
+
+&kap
+    use_Type2_opacities = .false.
+    !kap_lowT_prefix = 'lowT_fa05_a09p' ! default is gs98
+    cubic_interpolation_in_Z = .true.
+    cubic_interpolation_in_X = .true.
+
+/ ! end of kap namelist
+
+
+&controls
+    initial_mass = 1d0
+    initial_z = 0.018
+
+    !max_age = 1d4
+    
+    mesh_delta_coeff = 1d0
+    !P_function_weight = 150  ! default is 40
+    !T_function1_weight = 200 ! default is 110
+    !log_kap_function_weight = 100 
+    
+    MLT_option = 'Cox'
+    mixing_length_alpha = 1.8
+    atm_T_tau_opacity = 'varying'
+
+    
+    use_gold2_tolerances = .true.
+    
+    profile_interval = -1
+    photo_interval = -1
+    
+/ ! end of controls namelist
