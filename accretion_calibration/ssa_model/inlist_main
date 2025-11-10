@@ -137,7 +137,7 @@
 
 
 ! stopping condition ! at solar age ish.
-      max_age = 4.572d9
+      max_age = 4.568d9
 
       !stop_near_zams = .true.
 
@@ -157,7 +157,7 @@
 ! convection
       MLT_option = 'TDC' ! TDC maybe breaks with deuterium burning on... 
       mixing_length_alpha = 1.8
-      alpha_TDC_DAMPR = 3d0 ! 3 Henyey -ish.
+      alpha_TDC_DAMPR = 0d0 ! 3 Henyey -ish.
 
 ! convective boundary mixing routines
       use_Ledoux_criterion = .true.
@@ -240,7 +240,12 @@
 ! mesh
       max_allowed_nz = 100000
       !max_dq= 1d-3 ! or lower
-      mesh_delta_coeff = 2.5d0!1d0!0.8d0 
+      mesh_delta_coeff = 1d0!1d0!0.8d0 
+
+      xa_function_species(1) = 'he3'
+      xa_function_weight(1) = 1e3 
+      xa_function_param(1) = 1
+
 ! might need extra mesh at surface for good convergence.
 
 
