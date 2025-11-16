@@ -30,72 +30,91 @@ np.set_printoptions(precision=10)
 np.random.seed(42)               # reproducibility
 Z_X_solar = 0.0181# agss09 !0.02293 for gs98              # solar Z/X
 save_dir  = "LOGS"
-os.makedirs(save_dir, exist_ok=True)
-
+#os.makedirs(save_dir, exist_ok=True)
+if not os.path.exists(save_dir):
+    os.mkdir(save_dir)
+    
 # Step 4: Parse optional age argument
 age = 4.568
-if len(sys.argv) > 1:
-    age = float(sys.argv[1])
+#if len(sys.argv) > 1:
+#    age = float(sys.argv[1])
+if len(sys.argv) > 2:
+    age = sys.argv[2]
 
 # Step 5: Calibration variables, names, and bounds
 X_names = ['Y', 'Z', 'a']        # helium, metals, αMLT
 X       = [0.269, 0.0187, 2.22]
-X_var   = [0.005,        0.005,           0.01]
+X_var   = [0.005, 0.005, 0.01]
 bounds  = [(0.25, 0.29), (0.012, 0.022), (1.5, 2.5)]
+"""
+X_names = [ 'Y',   'a']
+X       = [0.26, 1.665]
+X_var   = [0.005, 0.01]
+bounds  = [(0.25, 0.29), (1.5, 2.5)]
+print(X_names)
+"""
 
-lower = np.array([b[0] for b in bounds])
-upper = np.array([b[1] for b in bounds])
+P = lambda x: x#(x-X)/X_var
+R = lambda x: x#x*X_var+X
+lower = P(np.array([bound[0] for bound in bounds]))
+upper = P(np.array([bound[1] for bound in bounds]))
 
 # Step 6: Flag‐builder for mesa.sh
 def get_flags(names, args):
-    """
-    Builds a string like:  -Y 0.27 -Z 0.0187 -a 2.22
-    """
-    pairs = ["{} {}".format(n, v) for n, v in zip(names, args)]
-    return ' ' + ' '.join(['-' + p for p in pairs])
+    return ' -'.join([''] + list(map(lambda x,y: x+' '+str(y), names, args)))
+
 
 # Step 7: Core calibration function
 @np_cache
 def calibrate(theta, fast=True, single=False):
-    # 7.1 Rescale back to physical parameters
-    Y, Z, alpha = theta
+    _theta = R(np.copy(theta))
+    print("parameters:", _theta)
     
-    # 7.2 Check bounds
+    Y, Z, alpha = _theta
+    #Z = (1-Y) * Z_X_solar / (1+Z_X_solar) # [Fe/H] = 0 = log10(Z/X/0.02293); Z=1-Y-X
+    
     if np.any(theta < lower) or np.any(theta > upper):
-        print("→ Out of bounds:", theta)
-        return 1.0 if single else np.ones(len(theta))
+        print('out of bounds')
+        if single:
+            return 1
+        return np.ones(len(theta))
     
-    # 7.3 Build & run mesa.sh
-    flags = get_flags(X_names, [Y, Z, alpha])
-    cmd   = "./mesa.sh" + flags
+    bash_cmd = get_flags(X_names + ['Z'], list(_theta) + [Z])
+    print(bash_cmd)
+    
+    full = "./mesa.sh"+bash_cmd
     if fast:
-        cmd += " -f"
-    print("→ Running:", cmd)
-    with open('temp.txt', 'w') as out:
-        proc = subprocess.Popen(cmd.split(), stdout=out)
-        proc.wait(timeout=60000)
+        full = full + ' -f'
+    print(full)
+    with open('temp.txt', 'w') as output:
+        process = subprocess.Popen(full.split(),
+            shell=False, stdout=output)
+        process.wait(timeout=60000)
     
     # 7.4 Read results
-    hist = os.path.join(save_dir, 'history.data')
-    prof = os.path.join(save_dir, 'solar.data')
-    if not (os.path.isfile(hist) and os.path.isfile(prof)):
-        print("→ No output files found")
-        return 1.0 if single else np.ones(len(theta))
-    
-    DF   = pd.read_table(hist, sep='\s+', skiprows=5)
-    PR   = pd.read_table(prof, sep='\s+', skiprows=5)
+    hist_file = os.path.join(save_dir, 'history.data')
+    pro_file  = os.path.join(save_dir, 'solar.data')
+    if not os.path.isfile(hist_file) or not os.path.isfile(pro_file):
+        print('No output')
+        if single:
+            return 1
+        return np.ones(len(theta))
+    DF = pd.read_table(hist_file, sep='\s+', skiprows=5)
+    prof = pd.read_table(pro_file, sep='\s+', skiprows=5)
     
     # 7.5 Compute residuals
     logR = DF['log_R'].iloc[-1]
     logL = DF['log_L'].iloc[-1]
-    Fe_H = np.log10(PR.z.values[0] / PR.x.values[0] / Z_X_solar)
-    print(f"  logR={logR:.3e}, logL={logL:.3e}, [Fe/H]={Fe_H:.3e}")
+    Fe_H = np.log10(prof.z.values[0] / prof.x.values[0] / Z_X_solar)
+    print('log R:', logR)
+    print('log L:', logL)
+    print('[Fe/H]:', Fe_H)
     
     # 7.6 Convergence check
     if abs(logR) < 1e-7 and abs(logL) < 1e-7 and abs(Fe_H) < 1e-4:
-        print("→ Converged!")
-        sys.exit(0)
-    
+        print('good enough!')
+        sys.exit()
+        
     # 7.7 Return either scalar or vector of residuals
     if single:
         return np.log10(abs(logR)) + np.log10(abs(logL)) + np.log10(abs(Fe_H))

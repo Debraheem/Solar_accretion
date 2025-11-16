@@ -6,19 +6,20 @@
     save_model_filename = 'solar.mod'
     
     change_initial_net = .true.
-    new_net_name = 'pp_and_cno_extras.net'
+    new_net_name = 'pp_and_cno_extras_be9_v2.net'
     
     write_profile_when_terminate = .true.
     filename_for_profile_when_terminate = 'LOGS/solar.data'
     
     relax_Y = .true.
     relax_Z = .true.
-    new_Y = 0.2733324890692506
-    new_Z = 0.018585311347664897
+    new_Y = 0.2721024528583815
+    new_Z = 0.018609112155355427
     
       
     T9_weaklib_full_off = 0.0001d0
     T9_weaklib_full_on = 0.00011d0
+    jina_reaclib_min_T9 = 1d-4
 
     set_initial_age = .true.
     initial_age = 0
@@ -32,9 +33,6 @@
 
 
 &eos
-    use_FreeEOS = .false.
-    !use_OPAL_SCVH = .false.
-    use_Skye = .false.
 
 / ! end of eos namelist
 
@@ -55,23 +53,30 @@
 !relax_dlnZ = 0.005d0
 
     initial_mass = 1d0
-    initial_Z = 0.0187
+    initial_Z = 0.0187 ! ignored when loading from a .mod file.
     
     mesh_delta_coeff = 1d0
     
     MLT_option = 'Cox'
-    mixing_length_alpha = 1.7916370854488668
+    mixing_length_alpha = 1.8008410382732933
     
     atm_T_tau_opacity = 'varying'
     
-    P_function_weight = 150  ! default is 40
-    T_function1_weight = 200 ! default is 110
+    ! mesh
+    !P_function_weight = 150  ! default is 40
+    !T_function1_weight = 200 ! default is 110
     log_kap_function_weight = 100 
     
+    xa_function_species(1) = 'he3'
+    xa_function_weight(1) = 1e3 
+    xa_function_param(1) = 1
+
     use_gold2_tolerances = .true.
     
-    max_age = 4.568d9 !4.572d9
-    
+    max_age = 4.568d9
+    when_to_stop_rtol = 1d-7
+    when_to_stop_atol = 1d-7
+
     history_interval = 1
     profile_interval = 9999
     photo_interval = 9999

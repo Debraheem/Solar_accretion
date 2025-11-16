@@ -53,43 +53,38 @@
          s% other_adjust_mdot => other_adjust_mdot
          s% other_energy => energy_routine
 
-         ! accretion composition controls.
-!         s% accretion_h2 = 20*1d-6 ! both need adjusted to be asplund
-!         s% accretion_he3 = 85*1d-6 ! both need adjusted to be asplund
-!         s% accretion_he4 = 0.2703 - s% accretion_he3 - s% accretion_h2
-!         s% accretion_h1 = 1 - s% accretion_h2 - s% accretion_he3 - s% accretion_he4
 
-
-!        s% job% initial_h2 = s% x_ctrl(1)*1d-6
-!        s% job% initial_he3 = s% x_ctrl(2)*1d-6
-!        s% job% initial_he4 = 0.224 + 2d0*s% initial_z - s% x_ctrl(2)*1d-6
-!        !s% initial_y = 0.224 + 2*s% initial_z
-!        s% job% initial_h1 = 1d0 - s% job% initial_h2 - s% job% initial_he3 -s% job% initial_he4 - s% initial_z
-
+        ! this part only matters for the generation of the seed, since we relax.
         s% job% initial_h2 = s% x_ctrl(1)*1d-6
         s% job% initial_he3 = s% x_ctrl(2)*1d-6
-        s% job% initial_he4 = s% x_ctrl(7)!0.2703d0 !+ s% x_ctrl(2)*1d-6
-        !s% initial_y = 0.224 + 2*s% initial_z
+        s% job% initial_he4 = s% x_ctrl(8) !0.2703d0
         s% job% initial_h1 = 1d0 - s% job% initial_h2 - s% job% initial_he3 -s% job% initial_he4 - s% initial_z
 
-        write (*,*) 'adopted abundances'
+        write (*,*) 'adopted initial abundances'
         write (*,*) 'initial_h1', s% job%initial_h1
         write (*,*) 'initial_h2', s% job%initial_h2
         write (*,*) 'initial_he3', s% job%initial_he3
         write (*,*) 'initial_he4', s% job%initial_he4
         write (*,*) 'initial_z', s% initial_z
 
+! these routines are only called once, so we should call again in start/finish step
+! for modified accretion schemes.
+
+       ! accretion composition controls.
         s% accretion_h2 = s% x_ctrl(1)*1d-6
         s% accretion_he3 = s% x_ctrl(2)*1d-6
-        s% accretion_he4 = 0.2703d0 !+ s% x_ctrl(2)*1d-6
-        s% accretion_h1 = 1d0 - s% job% initial_h2 - s% job% initial_he3 -s% job% initial_he4 - s % initial_z
+        s% accretion_he4 = s% x_ctrl(8) !0.2703d0
+        s% accretion_h1 = 1d0 - s% job% initial_h2 - s% job% initial_he3 -s% job% initial_he4 - s% initial_z
+
+        s% job% new_Y = s% x_ctrl(8) ! we hold he3 and h2 fixed
+        s% job% new_Z = s% initial_z
+
       end subroutine extras_controls
 
 
         integer function extras_start_step(id)
         integer, intent(in) :: id
         integer :: ierr
-        real(dp) :: integral_norm, beta, gamma1_integral
         integer :: k0
         type (star_info), pointer :: s
         ierr = 0
@@ -115,16 +110,6 @@
 
         Lacc = 0d0
         Ladd = 0d0
-            ! Pulsation data controls
-      !!!!New output controls for Pulsation data.
-      !s% write_pulse_data_with_profile = .true.
-      !s% pulse_data_format = 'GYRE'
-      !!!!write_pulsation_plot_data = .true.
-      !s% add_atmosphere_to_pulse_data = .true.
-      !s% add_double_points_to_pulse_data = .true.
-      !s% interpolate_rho_for_pulse_data = .true.
-
-      !s% profile_interval = 1000000
          
       end subroutine extras_startup
 
@@ -227,7 +212,6 @@
          integer, intent(in) :: id, n, nz
          character (len=maxlen_profile_column_name) :: names(n)
          real(dp) :: vals(nz,n)
-         type(auto_diff_real_star_order1) :: Prad_face
          integer, intent(out) :: ierr
          type (star_info), pointer :: s
          integer :: k
@@ -236,8 +220,6 @@
          if (ierr /= 0) return
          names(1) = 'zbar_div_abar'
 
-
-         Prad_face = 0d0
          do k=1,s% nz
             vals(k,1) = s% zbar(k)/s% abar(k)
          end do
@@ -254,7 +236,6 @@
         call star_ptr(id, s, ierr)
         if (ierr /= 0) return
         extras_finish_step = keep_going
-
 
         if (extras_finish_step == terminate) s% termination_code = t_extras_finish_step
         end function extras_finish_step
@@ -274,8 +255,10 @@
         !write(*,*) 'sigmoid', sigmoid
         if (s% star_mass < s% x_ctrl(3)) then ! target mass
         s% mstar_dot = sigmoid * s% x_ctrl(18)*Msun/secyer ! in solar masses per year
+        s% do_element_diffusion = .false. ! keep diffusion off during accretion phase
         else
         s% mstar_dot = 0d0
+        s% do_element_diffusion = .true. ! turn on diffusion after accretion phase
         end if
 
         !write(*,*) "current Accretion rate: " ,  s% mstar_dot/Msun*secyer
@@ -303,11 +286,11 @@
 
         ! Deposit heat into q set by mass accreted over timestep.
         ! 1d-8 Msun/yr * 1d2 yr = 1d-6 Msun -> q = 1d-6 [Msun] / Mstar [Msun] .
-        s% x_ctrl(5) = s% mstar_dot * s% dt / (s% star_mass * Msun ) ! fraction of total mass.
+        !s% x_ctrl(5) = s% mstar_dot * s% dt / (s% star_mass * Msun ) ! fraction of total mass.
         xpos = 0.01d0 ! units of q, where 0.01 = 1% by mass.
 
         if (s% mstar_dot <= 0.) return
-        Lacc = 0.5 * (standard_cgrav * (s% mstar_dot) * (s% mstar)) / s% r(1)
+        Lacc = s% x_ctrl(7) * (standard_cgrav * (s% mstar_dot) * (s% mstar)) / s% r(1)
         Ladd = (alpha_heat/2) * standard_cgrav * &
         (s% star_mass *Msun) * (s% mstar_dot) / (s% r(1)) ![erg/s]
 

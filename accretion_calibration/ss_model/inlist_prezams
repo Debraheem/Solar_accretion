@@ -60,9 +60,6 @@
     !log_kap_function_weight = 100
     !gradT_function_weight = 5e2
     
-    !xa_function_species(1) = 'he4'
-    !xa_function_weight(1) = 5e3
-    !xa_function_param(1) = 1
     
     xa_function_species(1) = 'he3'
     xa_function_weight(1) = 5e6

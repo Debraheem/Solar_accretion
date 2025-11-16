@@ -3,7 +3,7 @@
   ! generate output
   delta_HR_limit_for_file_output = 1d-99
 
-  pgstar_interval = 1
+  pgstar_interval = 50
   ! Set up grid layout
 
   Grid1_win_flag = .true.

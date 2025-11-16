@@ -1,6 +1,6 @@
 &pgstar
 
-pgstar_interval = 10
+pgstar_interval = 1
 file_digits = 8
 pgstar_show_age_in_years = .true.
 pgstar_show_age_in_seconds = .false.
@@ -106,7 +106,7 @@ Text_Summary1_name(5,11) = '' ! 'log_Lneu_reco'
 Text_Summary1_name(6,1) = 'neutron_rich_core_mass'
 Text_Summary1_name(6,2) = 'he_core_mass'
 Text_Summary1_name(6,3) = '' ! 'o_core_mass'
-Text_Summary1_name(6,4) = 'mass_loc_of_max_eps_nuc'
+Text_Summary1_name(6,4) = ''
 Text_Summary1_name(6,5) = 'log_max_T' 
 Text_Summary1_name(6,6) = '' ! 'fe_core_mass'
 Text_Summary1_name(6,7) = 'center_ye'
@@ -782,7 +782,7 @@ pgstar_right_yaxis_label_disp = 2.5
 ! non-rotational quantities, generally
 
 Grid1_win_flag = .true.
-Grid1_win_width = 21
+Grid1_win_width = 13
 Grid1_win_aspect_ratio = 0.35
 
 ! reset the defaults
@@ -1047,7 +1047,7 @@ Grid1_file_aspect_ratio = -1 ! negative means use same value as for window
 
       ! ::
 
-    History_Panels1_yaxis_name(3) = 'mass_loc_of_max_eps_nuc '!'log_total_energy'
+    History_Panels1_yaxis_name(3) = ''!'log_total_energy'
     History_Panels1_yaxis_reversed(3) = .false.
     History_Panels1_ymin(3) = -101d0
     History_Panels1_ymax(3) = -101d0

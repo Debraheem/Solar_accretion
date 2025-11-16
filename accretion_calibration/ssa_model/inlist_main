@@ -22,25 +22,24 @@
       create_pre_main_sequence_model = .false.
       load_saved_model = .true.
       load_model_filename = 'late_pre_zams.mod' 
-   ! abundances, optional, when creating pms model.
+   ! abundances, optional, when creating pms model., see inlist_make_late_pre_zams
    !   new_Z = 1.42d-2
-   !   initial_zfracs = 6 ! set to asplund 2009 abundance fractions
+   ! to correctly change this, you must generate a new late_pre_zams.mod 
+   initial_zfracs = 6 ! set to asplund 2009 abundance fractions
 
 ! Save model 
       save_model_when_terminate = .true.
       save_model_filename = 'accreted_star.mod'
      
 ! Save Profiles
-	write_profile_when_terminate = .true.
-	filename_for_profile_when_terminate = 'final_profile.data'
-
+    write_profile_when_terminate = .true.
+    filename_for_profile_when_terminate = 'LOGS/solar.data'
 
 ! Network
       !change_initial_net = .true. ! only executed when reading from mod file
       change_net = .true. ! executed always
       new_net_name = 'pp_and_cno_extras_be9_v2.net'
-
-      jina_reaclib_min_T9 = 1d-4
+      jina_reaclib_min_T9 = 1d-4 ! jina rates cannot always be trusted in this territory
 
 ! we want to use weaklib all the time, so we toggle at lowT.
 	T9_weaklib_full_off = 0.0001d0
@@ -66,6 +65,13 @@
 
       set_initial_age = .true.
       initial_age = 0
+
+
+! relax initial seed composition
+    relax_Y = .true.
+    relax_Z = .true.
+    ! set inside run_star_extras from x_ctrl(8) !new_Y = 0.2733324890692506
+    ! set inside run_star_extras from initial_z !new_Z = 0.018585311347664897
 
 / ! end of star_job namelist
 
@@ -95,8 +101,6 @@
 
 ! optional initial conditions
       !initial_mass = 0.01d0
-      !initial_z = 0.0142d0 !asplund 2009
-      !initial_y = 0.2703d0 !asplund 2009
 
 ! accretion
 
@@ -126,10 +130,10 @@
 ! perhaps see https://ui.adsabs.harvard.edu/abs/1998SSRv...84..251M/abstract, for he3 and h2.
 ! D/H = (2.6 +/- 0.7) x 10-5 3He/4He = (1.66 +/- 0.05) x 10-4 from Mahaffy 1998.
 ! 4x 10^-5 , Bochsler, P. (2000), Gloeckler, G., & Geiss, J. (1998)
- 	initial_z = 0.0142d0 ! aplund 2009
+    initial_z = 0.0187
 	x_ctrl(1) = 25.49d0	! deuterium abundance in ppm, voort et al. 2018
 	x_ctrl(2) = 108d0!45d0 !85d0	! he3 abundance in ppm	
-        x_ctrl(7) = 0.2703 ! initial Helium Abundance
+        x_ctrl(8) = 0.269 ! initial Helium Abundance
 
       use_other_adjust_mdot = .true.
       use_other_energy = .true.
@@ -138,12 +142,9 @@
 
 ! stopping condition ! at solar age ish.
       max_age = 4.568d9
-
-      !stop_near_zams = .true.
-
       when_to_stop_rtol = 1d-7
       when_to_stop_atol = 1d-7
-
+      !stop_near_zams = .true.
 
 
 ! atmosphere      
@@ -152,12 +153,10 @@
       atm_T_tau_opacity = 'varying' ! next best is 'iterated'
       !Pextra_factor = 1d0
 
-      !atm_T_tau_errtol = 1d-6
 
 ! convection
-      MLT_option = 'TDC' ! TDC maybe breaks with deuterium burning on... 
-      mixing_length_alpha = 1.8
-      alpha_TDC_DAMPR = 0d0 ! 3 Henyey -ish.
+      MLT_option = 'Cox' ! using Cox for studying SSMs
+    mixing_length_alpha = 2.22
 
 ! convective boundary mixing routines
       use_Ledoux_criterion = .true.
@@ -178,7 +177,7 @@
       overshoot_f(1) = 0.005!0.016
       overshoot_f0(1) = 0.001!0.005
 
-      overshoot_D_min = 1d-4 !1d2 is MESA default, using lower value following Lynn's work.
+      overshoot_D_min = 1d-8 !1d2 is MESA default, using lower value following Lynn's work.
 
 ! for accreting massive stars.
 ! We can use superad reduction, because in practice, it is not applied unless the layers approach the eddingonton limit, so it shouldn't introduce any unphysical enhancement in the way mlt++ does.
@@ -247,11 +246,13 @@
       xa_function_param(1) = 1
 
 ! might need extra mesh at surface for good convergence.
+    !log_kap_function_weight = 100 
+    !P_function_weight = 150  ! default is 40
+    !T_function1_weight = 200 ! default is 110
 
 
 ! solver convergence
       energy_eqn_option = 'dedt'
-
 
    use_gold_tolerances = .true.
    use_gold2_tolerances = .true.
@@ -259,13 +260,44 @@
    convergence_ignore_equL_residuals = .true.
 
 
+      
+! atomic diffusion, turned in inside run_star_extras.
+      do_element_diffusion = .false. ! determines whether or not we do diffusion
+      do_diffusion_heating = .true.
+      diffusion_dt_limit = 7d11 ! no element diffusion if dt < this limit (in seconds)
+      diffusion_T_full_on = 1d3
+      diffusion_T_full_off = 1d3
+      
+      diffusion_calculates_ionization = .true.
+      diffusion_use_full_net = .true.
+      diffusion_use_cgs_solver = .true.
 
-! smoothing gradients for asteroseismology ! please check EARL.
-    num_cells_for_smooth_gradL_composition_term = 10 ! 50
-    threshold_for_smooth_gradL_composition_term = 0.02
+
+!      diffusion_num_classes = 4 ! number of classes of species for diffusion calculations
+!      diffusion_class_representative(1) = 'h1'
+!      diffusion_class_representative(2) = 'he4'
+!      diffusion_class_representative(3) = 'o16'
+!      diffusion_class_representative(4) = 'fe56'
+   
+      ! in ascending order.  species goes into 1st class with A_max >= species A
+!      diffusion_class_A_max(1) = 2
+!      diffusion_class_A_max(2) = 4
+!      diffusion_class_A_max(3) = 16
+!      diffusion_class_A_max(4) = 10000
+         
+      diffusion_use_isolve = .true.
+      diffusion_rtol_for_isolve = 1d-4
+      diffusion_atol_for_isolve = 1d-5
+      diffusion_maxsteps_for_isolve = 1000
+      diffusion_isolve_solver = 'ros2_solver'
+
+
+! smoothing gradients for asteroseismology ! 
+!    num_cells_for_smooth_gradL_composition_term = 10 ! 50
+!    threshold_for_smooth_gradL_composition_term = 0.02
  
-    num_cells_for_smooth_brunt_B = 10     ! 50
-    threshold_for_smooth_brunt_B = 0.1    ! 1.0e-4
+!    num_cells_for_smooth_brunt_B = 10     ! 50
+!    threshold_for_smooth_brunt_B = 0.1    ! 1.0e-4
 
 ! gyre output in run_star_extras
 ! gyre output for post-processing
@@ -280,7 +312,7 @@ add_center_point_to_pulse_data=.true.
 ! output
        photo_interval         = 1000 !1000
        photo_digits           = 8
-       profile_interval       = 100 
+       profile_interval       = 1000 
        max_num_profile_models = 400000
        history_interval       = 1
        write_header_frequency = 10
